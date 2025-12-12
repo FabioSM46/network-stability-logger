@@ -2,8 +2,14 @@ package main
 
 import (
 	"fmt"
+	"os"
+
+	"github.com/FabioSM46/network-stability-logger/cmd"
 )
 
 func main() {
-	fmt.Println("Hello, Network Stability Logger!")
+	if err := cmd.Execute(); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
 }
