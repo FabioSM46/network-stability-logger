@@ -8,6 +8,11 @@ func (m *SystemEventsMonitor) startDarwin() error {
 	return fmt.Errorf("macOS monitoring not available on this platform")
 }
 
+// nolint:unused
 func (m *SystemEventsMonitor) parseRoutingMessage(data []byte) {}
-func (m *SystemEventsMonitor) logNetworkStateDarwin()          {}
-func (m *SystemEventsMonitor) monitorDNSChangesDarwin()        {}
+
+// nolint:unused
+func (m *SystemEventsMonitor) logNetworkStateDarwin() {}
+
+// nolint:unused
+func (m *SystemEventsMonitor) monitorDNSChangesDarwin() {}

@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 )
@@ -41,9 +41,10 @@ func getLogPath() string {
 		return logPath
 	}
 
-	homeDir, err := os.UserHomeDir()
+	exePath, err := os.Executable()
 	if err != nil {
-		homeDir = "."
+		return "network-monitor.log"
 	}
-	return fmt.Sprintf("%s/.network-monitor/network-monitor.log", homeDir)
+	exeDir := filepath.Dir(exePath)
+	return filepath.Join(exeDir, "network-monitor.log")
 }

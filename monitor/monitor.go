@@ -72,9 +72,10 @@ func (nm *NetworkMonitor) Wait() {
 }
 
 func GetDefaultLogPath() string {
-	homeDir, err := os.UserHomeDir()
+	exePath, err := os.Executable()
 	if err != nil {
-		homeDir = "."
+		return "network-monitor.log"
 	}
-	return filepath.Join(homeDir, ".network-monitor", "network-monitor.log")
+	exeDir := filepath.Dir(exePath)
+	return filepath.Join(exeDir, "network-monitor.log")
 }

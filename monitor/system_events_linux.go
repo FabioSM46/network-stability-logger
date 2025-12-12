@@ -199,7 +199,7 @@ func (m *SystemEventsMonitor) logDNSServers() {
 	if err != nil {
 		return
 	}
-	defer syscall.Close(content)
+	defer func() { _ = syscall.Close(content) }()
 
 	buf := make([]byte, 4096)
 	n, err := syscall.Read(content, buf)

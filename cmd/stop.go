@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strconv"
 	"syscall"
@@ -45,7 +44,7 @@ func runStop(cmd *cobra.Command, args []string) error {
 	process, err := os.FindProcess(pid)
 	if err != nil {
 		fmt.Printf("Process %d not found\n", pid)
-		os.Remove(pidFile)
+		_ = os.Remove(pidFile)
 		return nil
 	}
 
@@ -55,32 +54,13 @@ func runStop(cmd *cobra.Command, args []string) error {
 		// Process might not exist
 		fmt.Printf("Failed to send signal: %v\n", err)
 		fmt.Println("Removing stale PID file...")
-		os.Remove(pidFile)
+		_ = os.Remove(pidFile)
 		return nil
 	}
 
 	// Clean up PID file
-	os.Remove(pidFile)
+	_ = os.Remove(pidFile)
 	fmt.Println("Network monitor stopped")
 
 	return nil
-}
-
-// Helper function to check if process is running
-func isProcessRunning(pid int) bool {
-	// Try to send signal 0 (doesn't actually send a signal, just checks if process exists)
-	process, err := os.FindProcess(pid)
-	if err != nil {
-		return false
-	}
-
-	err = process.Signal(syscall.Signal(0))
-	return err == nil
-}
-
-// Helper to check using ps command
-func isProcessRunningPS(pid int) bool {
-	cmd := exec.Command("ps", "-p", strconv.Itoa(pid))
-	err := cmd.Run()
-	return err == nil
 }

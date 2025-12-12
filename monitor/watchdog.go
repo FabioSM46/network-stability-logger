@@ -44,7 +44,6 @@ func (m *WatchdogMonitor) Start() error {
 }
 
 func (m *WatchdogMonitor) runChecks() {
-	// Run initial check immediately
 	m.performChecks()
 
 	ticker := time.NewTicker(watchdogInterval)
@@ -64,13 +63,8 @@ func (m *WatchdogMonitor) runChecks() {
 func (m *WatchdogMonitor) performChecks() {
 	m.logger.Log("WATCHDOG", "Running periodic checks...")
 
-	// Check 1: Default route exists
 	m.checkDefaultRoute()
-
-	// Check 2: DNS resolution
 	m.checkDNS()
-
-	// Check 3: HTTP connectivity (also detects captive portals)
 	m.checkHTTP()
 }
 
@@ -92,7 +86,7 @@ func (m *WatchdogMonitor) checkDefaultRouteGeneric() {
 		m.logger.Log("WATCHDOG", "✗ WARNING: Cannot establish UDP connection (no route?)")
 		return
 	}
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	localAddr := conn.LocalAddr().String()
 	m.logger.Log("WATCHDOG", fmt.Sprintf("✓ Default route exists (local addr: %s)", localAddr))
@@ -144,7 +138,7 @@ func (m *WatchdogMonitor) checkHTTP() {
 		m.logger.Log("WATCHDOG", fmt.Sprintf("✗ HTTP FAILED: %v (took %v)", err, duration))
 		return
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	// Detect captive portal
 	if resp.StatusCode >= 300 && resp.StatusCode < 400 {

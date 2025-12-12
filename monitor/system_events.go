@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"runtime"
-	"time"
 )
 
 // SystemEventsMonitor handles platform-specific network event monitoring
@@ -32,13 +31,5 @@ func (m *SystemEventsMonitor) Start() error {
 		return m.startWindows()
 	default:
 		return fmt.Errorf("unsupported platform: %s", runtime.GOOS)
-	}
-}
-
-// getNetworkSnapshot returns current network state
-func (m *SystemEventsMonitor) getNetworkSnapshot() map[string]interface{} {
-	return map[string]interface{}{
-		"timestamp": time.Now(),
-		"platform":  runtime.GOOS,
 	}
 }

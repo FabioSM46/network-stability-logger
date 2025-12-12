@@ -38,7 +38,7 @@ func (m *TCPKeepaliveMonitor) maintainConnection() {
 		select {
 		case <-m.ctx.Done():
 			if m.conn != nil {
-				m.conn.Close()
+				_ = m.conn.Close()
 			}
 			m.logger.Log("TCP", "Stopped TCP keepalive monitor")
 			return
@@ -53,7 +53,7 @@ func (m *TCPKeepaliveMonitor) maintainConnection() {
 			if err := m.monitorConnection(); err != nil {
 				m.logger.Log("TCP", fmt.Sprintf("ERROR: Connection failed: %v", err))
 				if m.conn != nil {
-					m.conn.Close()
+					_ = m.conn.Close()
 					m.conn = nil
 				}
 				time.Sleep(reconnectDelay)
@@ -80,17 +80,17 @@ func (m *TCPKeepaliveMonitor) connect() error {
 	// Enable TCP keepalive at the socket level
 	if tcpConn, ok := conn.(*net.TCPConn); ok {
 		if err := tcpConn.SetKeepAlive(true); err != nil {
-			conn.Close()
+			_ = conn.Close()
 			return fmt.Errorf("failed to enable keepalive: %w", err)
 		}
 		if err := tcpConn.SetKeepAlivePeriod(30 * time.Second); err != nil {
-			conn.Close()
+			_ = conn.Close()
 			return fmt.Errorf("failed to set keepalive period: %w", err)
 		}
 
 		// Apply platform-specific keepalive tuning (no-op where unsupported)
 		if rawConn, err := tcpConn.SyscallConn(); err == nil {
-			rawConn.Control(func(fd uintptr) {
+			_ = rawConn.Control(func(fd uintptr) {
 				applyPlatformKeepalive(fd)
 			})
 		}
@@ -116,14 +116,14 @@ func (m *TCPKeepaliveMonitor) monitorConnection() error {
 			return nil
 		case <-ticker.C:
 			// Try to read with timeout
-			m.conn.SetReadDeadline(time.Now().Add(readTimeout))
+			_ = m.conn.SetReadDeadline(time.Now().Add(readTimeout))
 			n, err := m.conn.Read(buf)
 
 			if err != nil {
 				if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
 					// Timeout is expected, connection is still alive
 					// Reset deadline
-					m.conn.SetReadDeadline(time.Time{})
+					_ = m.conn.SetReadDeadline(time.Time{})
 					continue
 				}
 				// Real error - connection is broken
@@ -132,7 +132,7 @@ func (m *TCPKeepaliveMonitor) monitorConnection() error {
 
 			if n > 0 {
 				// Unexpected data, but connection is alive
-				m.conn.SetReadDeadline(time.Time{})
+				_ = m.conn.SetReadDeadline(time.Time{})
 			}
 		}
 	}

@@ -47,7 +47,7 @@ func displayLog(logFile string, numLines int, filter string) error {
 	if err != nil {
 		return fmt.Errorf("failed to open log file: %w", err)
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	// Read all lines
 	var allLines []string
@@ -84,10 +84,10 @@ func followLog(logFile string, filter string) error {
 	if err != nil {
 		return fmt.Errorf("failed to open log file: %w", err)
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	// Seek to end of file
-	file.Seek(0, 2)
+	_, _ = file.Seek(0, 2)
 
 	fmt.Printf("Following log file: %s\n", logFile)
 	if filter != "" {

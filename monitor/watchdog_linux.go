@@ -8,7 +8,6 @@ import (
 	"github.com/vishvananda/netlink"
 )
 
-// checkDefaultRouteLinux verifies a default route via netlink.
 func (m *WatchdogMonitor) checkDefaultRouteLinux() {
 	routes, err := netlink.RouteList(nil, netlink.FAMILY_V4)
 	if err != nil {
@@ -20,7 +19,7 @@ func (m *WatchdogMonitor) checkDefaultRouteLinux() {
 	var defaultGw string
 
 	for _, route := range routes {
-		if route.Dst == nil { // Default route
+		if route.Dst == nil {
 			hasDefault = true
 			if route.Gw != nil {
 				defaultGw = route.Gw.String()

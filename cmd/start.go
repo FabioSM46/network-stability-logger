@@ -29,16 +29,17 @@ func runStart(cmd *cobra.Command, args []string) error {
 
 	logFile := getLogPath()
 
-	if !foreground {
-		fmt.Printf("Starting network monitor in background...\n")
-		fmt.Printf("Log file: %s\n", logFile)
-		fmt.Printf("\nUse 'network-monitor log' to view logs\n")
-		fmt.Printf("Use 'network-monitor stop' to stop the monitor\n\n")
+	// If not in foreground and not already a daemon child, re-exec as daemon
+	if !foreground && os.Getenv("_NETWORK_MONITOR_DAEMON") == "" {
+		return daemonize(cmd, logFile)
+	}
 
-		// For simplicity, we'll run in foreground for now
-		// A production implementation would use a proper daemon library
-		fmt.Println("Note: Daemonization not fully implemented, running in foreground mode")
-		foreground = true
+	if !foreground {
+		// Already daemonized, suppress console output
+		devNull, _ := os.Open(os.DevNull)
+		os.Stdout = devNull
+		os.Stderr = devNull
+		os.Stdin, _ = os.Open(os.DevNull)
 	}
 
 	// Create and start the monitor
