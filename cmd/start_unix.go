@@ -38,7 +38,7 @@ func daemonize(cmd *cobra.Command, logFile string) error {
 		},
 	}
 
-	pid, err := syscall.ForkExec(argv[0], argv, attr)
+	pid, err := syscall.ForkExec(argv[0], argv, attr) //nolint:gosec // argv constructed from executable and flags
 	if err != nil {
 		return fmt.Errorf("failed to fork: %w", err)
 	}
@@ -46,10 +46,10 @@ func daemonize(cmd *cobra.Command, logFile string) error {
 	// Write PID file
 	homeDir, _ := os.UserHomeDir()
 	pidDir := filepath.Join(homeDir, ".network-monitor")
-	_ = os.MkdirAll(pidDir, 0755)
+	_ = os.MkdirAll(pidDir, 0750)
 
 	pidFile := filepath.Join(pidDir, "monitor.pid")
-	if err := os.WriteFile(pidFile, []byte(strconv.Itoa(pid)), 0644); err != nil {
+	if err := os.WriteFile(pidFile, []byte(strconv.Itoa(pid)), 0600); err != nil {
 		return fmt.Errorf("failed to write PID file: %w", err)
 	}
 

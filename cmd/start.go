@@ -24,7 +24,7 @@ func init() {
 	startCmd.Flags().BoolP("foreground", "f", false, "Run in foreground (don't daemonize)")
 }
 
-func runStart(cmd *cobra.Command, args []string) error {
+func runStart(cmd *cobra.Command, _ []string) error {
 	foreground, _ := cmd.Flags().GetBool("foreground")
 
 	logFile := getLogPath()

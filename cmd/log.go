@@ -1,9 +1,11 @@
+// Package cmd contains CLI commands for the network monitor.
 package cmd
 
 import (
 	"bufio"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -20,10 +22,16 @@ var logCmd = &cobra.Command{
 func init() {
 	logCmd.Flags().IntP("lines", "n", 50, "Number of lines to display (0 for all)")
 	logCmd.Flags().BoolP("follow", "f", false, "Follow log output (like tail -f)")
-	logCmd.Flags().StringP("filter", "F", "", "Filter logs by category (SYSTEM, LINK, ADDRESS, ROUTE, DNS, TCP, WATCHDOG, MONITOR)")
+	// Keep help text concise to satisfy lll
+	logCmd.Flags().StringP(
+		"filter",
+		"F",
+		"",
+		"Filter by category: SYSTEM, LINK, ADDRESS, ROUTE, DNS, TCP, WATCHDOG, MONITOR",
+	)
 }
 
-func runLog(cmd *cobra.Command, args []string) error {
+func runLog(cmd *cobra.Command, _ []string) error {
 	lines, _ := cmd.Flags().GetInt("lines")
 	follow, _ := cmd.Flags().GetBool("follow")
 	filter, _ := cmd.Flags().GetString("filter")
@@ -43,7 +51,9 @@ func runLog(cmd *cobra.Command, args []string) error {
 }
 
 func displayLog(logFile string, numLines int, filter string) error {
-	file, err := os.Open(logFile)
+	// Clean the path to mitigate path traversal concerns
+	cleanPath := filepath.Clean(logFile)
+	file, err := os.Open(cleanPath)
 	if err != nil {
 		return fmt.Errorf("failed to open log file: %w", err)
 	}
@@ -54,10 +64,8 @@ func displayLog(logFile string, numLines int, filter string) error {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
-		if filter != "" {
-			if !strings.Contains(line, fmt.Sprintf("[%s]", filter)) {
-				continue
-			}
+		if filter != "" && !matchesFilter(line, filter) {
+			continue
 		}
 		allLines = append(allLines, line)
 	}
@@ -80,7 +88,9 @@ func displayLog(logFile string, numLines int, filter string) error {
 }
 
 func followLog(logFile string, filter string) error {
-	file, err := os.Open(logFile)
+	// Clean the path to mitigate path traversal concerns
+	cleanPath := filepath.Clean(logFile)
+	file, err := os.Open(cleanPath)
 	if err != nil {
 		return fmt.Errorf("failed to open log file: %w", err)
 	}
@@ -97,26 +107,27 @@ func followLog(logFile string, filter string) error {
 
 	scanner := bufio.NewScanner(file)
 	for {
-		if scanner.Scan() {
-			line := scanner.Text()
-			if filter != "" {
-				if !strings.Contains(line, fmt.Sprintf("[%s]", filter)) {
-					continue
-				}
-			}
-			fmt.Println(line)
-		} else {
+		if !scanner.Scan() {
 			// No new data, wait a bit
 			time.Sleep(100 * time.Millisecond)
-
 			// Check if file still exists
-			if _, err := os.Stat(logFile); os.IsNotExist(err) {
+			if _, err := os.Stat(cleanPath); os.IsNotExist(err) {
 				return fmt.Errorf("log file was removed")
 			}
+			if err := scanner.Err(); err != nil {
+				return fmt.Errorf("error reading log file: %w", err)
+			}
+			continue
 		}
 
-		if err := scanner.Err(); err != nil {
-			return fmt.Errorf("error reading log file: %w", err)
+		line := scanner.Text()
+		if filter != "" && !matchesFilter(line, filter) {
+			continue
 		}
+		fmt.Println(line)
 	}
+}
+
+func matchesFilter(line, filter string) bool {
+	return strings.Contains(line, fmt.Sprintf("[%s]", filter))
 }

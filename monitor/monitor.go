@@ -1,3 +1,4 @@
+// Package monitor provides logging and monitoring primitives.
 package monitor
 
 import (
@@ -7,6 +8,7 @@ import (
 	"path/filepath"
 )
 
+// NetworkMonitor coordinates system, TCP, and watchdog monitors.
 type NetworkMonitor struct {
 	logger     *Logger
 	ctx        context.Context
@@ -16,6 +18,7 @@ type NetworkMonitor struct {
 	watchdog   *WatchdogMonitor
 }
 
+// NewNetworkMonitor constructs a monitor with the given log path.
 func NewNetworkMonitor(logPath string) (*NetworkMonitor, error) {
 	logger, err := NewLogger(logPath)
 	if err != nil {
@@ -28,12 +31,13 @@ func NewNetworkMonitor(logPath string) (*NetworkMonitor, error) {
 		logger:     logger,
 		ctx:        ctx,
 		cancel:     cancel,
-		sysEvents:  NewSystemEventsMonitor(logger, ctx),
-		tcpMonitor: NewTCPKeepaliveMonitor(logger, ctx),
-		watchdog:   NewWatchdogMonitor(logger, ctx),
+		sysEvents:  NewSystemEventsMonitor(ctx, logger),
+		tcpMonitor: NewTCPKeepaliveMonitor(ctx, logger),
+		watchdog:   NewWatchdogMonitor(ctx, logger),
 	}, nil
 }
 
+// Start begins all monitoring routines.
 func (nm *NetworkMonitor) Start() error {
 	nm.logger.Log("MONITOR", "=== Network Stability Monitor Starting ===")
 
@@ -55,6 +59,7 @@ func (nm *NetworkMonitor) Start() error {
 	return nil
 }
 
+// Stop signals monitors to terminate and closes the logger.
 func (nm *NetworkMonitor) Stop() error {
 	nm.logger.Log("MONITOR", "=== Network Stability Monitor Stopping ===")
 
@@ -67,10 +72,12 @@ func (nm *NetworkMonitor) Stop() error {
 	return nil
 }
 
+// Wait blocks until the monitor context is canceled.
 func (nm *NetworkMonitor) Wait() {
 	<-nm.ctx.Done()
 }
 
+// GetDefaultLogPath returns a default log file path near the executable.
 func GetDefaultLogPath() string {
 	exePath, err := os.Executable()
 	if err != nil {
