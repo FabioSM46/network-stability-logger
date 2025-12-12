@@ -12,13 +12,15 @@ type SystemEventsMonitor struct {
 	ctx    context.Context
 }
 
-func NewSystemEventsMonitor(logger *Logger, ctx context.Context) *SystemEventsMonitor {
+// NewSystemEventsMonitor creates a system events monitor for the given context.
+func NewSystemEventsMonitor(ctx context.Context, logger *Logger) *SystemEventsMonitor {
 	return &SystemEventsMonitor{
 		logger: logger,
 		ctx:    ctx,
 	}
 }
 
+// Start begins platform-specific system events monitoring.
 func (m *SystemEventsMonitor) Start() error {
 	m.logger.Log("SYSTEM", "Starting system events monitor")
 

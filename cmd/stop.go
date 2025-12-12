@@ -1,3 +1,4 @@
+// Package cmd contains CLI commands for the network monitor.
 package cmd
 
 import (
@@ -17,13 +18,13 @@ var stopCmd = &cobra.Command{
 	RunE:  runStop,
 }
 
-func runStop(cmd *cobra.Command, args []string) error {
+func runStop(_ *cobra.Command, _ []string) error {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return fmt.Errorf("failed to get home directory: %w", err)
 	}
 
-	pidFile := filepath.Join(homeDir, ".network-monitor", "monitor.pid")
+	pidFile := filepath.Clean(filepath.Join(homeDir, ".network-monitor", "monitor.pid"))
 
 	// Read PID file
 	data, err := os.ReadFile(pidFile)
@@ -43,19 +44,16 @@ func runStop(cmd *cobra.Command, args []string) error {
 	// Check if process exists
 	process, err := os.FindProcess(pid)
 	if err != nil {
-		fmt.Printf("Process %d not found\n", pid)
 		_ = os.Remove(pidFile)
-		return nil
+		return fmt.Errorf("process %d not found: %w", pid, err)
 	}
 
 	// Try to kill the process
 	fmt.Printf("Stopping network monitor (PID: %d)...\n", pid)
 	if err := process.Signal(syscall.SIGTERM); err != nil {
 		// Process might not exist
-		fmt.Printf("Failed to send signal: %v\n", err)
-		fmt.Println("Removing stale PID file...")
 		_ = os.Remove(pidFile)
-		return nil
+		return fmt.Errorf("failed to send SIGTERM: %w", err)
 	}
 
 	// Clean up PID file

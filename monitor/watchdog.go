@@ -16,25 +16,28 @@ const (
 	httpTimeout      = 10 * time.Second
 )
 
+// WatchdogMonitor performs periodic DNS/HTTP/default route checks.
 type WatchdogMonitor struct {
 	logger     *Logger
 	ctx        context.Context
 	httpClient *http.Client
 }
 
-func NewWatchdogMonitor(logger *Logger, ctx context.Context) *WatchdogMonitor {
+// NewWatchdogMonitor constructs a watchdog monitor.
+func NewWatchdogMonitor(ctx context.Context, logger *Logger) *WatchdogMonitor {
 	return &WatchdogMonitor{
 		logger: logger,
 		ctx:    ctx,
 		httpClient: &http.Client{
 			Timeout: httpTimeout,
-			CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			CheckRedirect: func(_ *http.Request, _ []*http.Request) error {
 				return http.ErrUseLastResponse // Don't follow redirects (captive portal detection)
 			},
 		},
 	}
 }
 
+// Start begins the watchdog periodic checks.
 func (m *WatchdogMonitor) Start() error {
 	m.logger.Log("WATCHDOG", "Starting watchdog monitor")
 

@@ -12,19 +12,22 @@ const (
 	reconnectDelay  = 5 * time.Second
 )
 
+// TCPKeepaliveMonitor maintains a persistent TCP connection and reports connectivity.
 type TCPKeepaliveMonitor struct {
 	logger *Logger
 	ctx    context.Context
 	conn   net.Conn
 }
 
-func NewTCPKeepaliveMonitor(logger *Logger, ctx context.Context) *TCPKeepaliveMonitor {
+// NewTCPKeepaliveMonitor constructs a TCP keepalive monitor.
+func NewTCPKeepaliveMonitor(ctx context.Context, logger *Logger) *TCPKeepaliveMonitor {
 	return &TCPKeepaliveMonitor{
 		logger: logger,
 		ctx:    ctx,
 	}
 }
 
+// Start launches the TCP keepalive monitoring loop.
 func (m *TCPKeepaliveMonitor) Start() error {
 	m.logger.Log("TCP", fmt.Sprintf("Starting persistent TCP keepalive monitor to %s", keepaliveTarget))
 
@@ -138,6 +141,7 @@ func (m *TCPKeepaliveMonitor) monitorConnection() error {
 	}
 }
 
+// IsConnected reports whether the monitor currently has an active connection.
 func (m *TCPKeepaliveMonitor) IsConnected() bool {
 	return m.conn != nil
 }

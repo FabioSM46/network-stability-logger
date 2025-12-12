@@ -23,6 +23,7 @@ var rootCmd = &cobra.Command{
 - Watchdog checks (DNS, HTTP, captive portal detection)`,
 }
 
+// Execute runs the root Cobra command.
 func Execute() error {
 	return rootCmd.Execute()
 }

@@ -1,3 +1,4 @@
+// Package main is the entry point for the network stability monitor.
 package main
 
 import (

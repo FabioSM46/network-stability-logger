@@ -1,3 +1,4 @@
+// Package monitor provides logging and monitoring primitives.
 package monitor
 
 import (
@@ -9,6 +10,7 @@ import (
 	"time"
 )
 
+// Logger writes categorized log messages to a file and stdout.
 type Logger struct {
 	mu      sync.Mutex
 	file    *os.File
@@ -16,14 +18,16 @@ type Logger struct {
 	logPath string
 }
 
+// NewLogger creates a new Logger writing to the provided log path.
 func NewLogger(logPath string) (*Logger, error) {
+	logPath = filepath.Clean(logPath)
 	// Create logs directory if it doesn't exist
 	dir := filepath.Dir(logPath)
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if err := os.MkdirAll(dir, 0750); err != nil {
 		return nil, fmt.Errorf("failed to create log directory: %w", err)
 	}
 
-	file, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	file, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0600)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open log file: %w", err)
 	}
@@ -35,6 +39,7 @@ func NewLogger(logPath string) (*Logger, error) {
 	}, nil
 }
 
+// Log writes a single line with timestamp and category.
 func (l *Logger) Log(category, message string) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -46,6 +51,7 @@ func (l *Logger) Log(category, message string) {
 	fmt.Println(logLine) // Also print to console
 }
 
+// Close flushes and closes the underlying file handle.
 func (l *Logger) Close() error {
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -56,6 +62,7 @@ func (l *Logger) Close() error {
 	return nil
 }
 
+// GetLogPath returns the absolute path to the log file.
 func (l *Logger) GetLogPath() string {
 	return l.logPath
 }

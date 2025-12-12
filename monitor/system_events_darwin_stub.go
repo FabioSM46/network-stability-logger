@@ -9,7 +9,9 @@ func (m *SystemEventsMonitor) startDarwin() error {
 }
 
 // nolint:unused
-func (m *SystemEventsMonitor) parseRoutingMessage(data []byte) {}
+func (m *SystemEventsMonitor) parseRoutingMessage(_ []byte) {}
+
+//nolint:revive // Darwin stub; parameter required for signature parity
 
 // nolint:unused
 func (m *SystemEventsMonitor) logNetworkStateDarwin() {}
