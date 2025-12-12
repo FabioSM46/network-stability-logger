@@ -1,4 +1,6 @@
 # Binaries for programs and plugins
+network-monitor
+network-monitor-*
 *.exe
 *.exe~
 *.dll
@@ -24,3 +26,11 @@ go.work
 *.swp
 *.swo
 *~
+
+# Application logs and data
+*.log
+.network-monitor/
+
+# OS
+.DS_Store
+Thumbs.db
